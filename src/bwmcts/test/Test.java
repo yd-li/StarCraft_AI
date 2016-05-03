@@ -27,6 +27,7 @@ import bwmcts.uct.flatguctcd.FlatGUCTCD;
 import bwmcts.uct.guctcd.ClusteringConfig;
 import bwmcts.uct.guctcd.GUCTCD;
 import bwmcts.uct.iuctcd.IUCTCD;
+import bwmcts.uct.portfolio.UCTPortfolio_2;
 import bwmcts.uct.rguctcd.RGUCTCD;
 import bwmcts.uct.uctcd.UCTCD;
 import bwmcts.sparcraft.*;
@@ -118,7 +119,8 @@ public class Test implements BWAPIEventListener  {
 		//p2 = new Player_AttackClosest(1);
 		//p2 = new Player_KiteDPS(1);
 		//p2 = new Player_NoOverKillAttackValue(1);
-		p2 = new UctLogic(tc.bwapi, new UCTCD(new UctConfig(1)),40);
+//		p2 = new UctLogic(tc.bwapi, new UCTCD(new UctConfig(1)),40);
+		p2 = new UctLogic(tc.bwapi, new UCTPortfolio_2(new UctConfig(1)),40);
 		//Player p2 = new RandomScriptLogic(1);
 		//Player p2 = new UctLogic(tc.bwapi, guctcdB, 40);
 		
