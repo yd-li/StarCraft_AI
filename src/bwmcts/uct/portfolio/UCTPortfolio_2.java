@@ -17,6 +17,11 @@ import bwmcts.sparcraft.players.Player_AttackWeakest;
 import bwmcts.sparcraft.players.Player_Forward;
 import bwmcts.sparcraft.players.Player_ForwardFar;
 import bwmcts.sparcraft.players.Player_Kite;
+import bwmcts.sparcraft.players.Player_NOKAVBack;
+import bwmcts.sparcraft.players.Player_NOKAVBackClose;
+import bwmcts.sparcraft.players.Player_NOKAVBackFar;
+import bwmcts.sparcraft.players.Player_NOKAVForward;
+import bwmcts.sparcraft.players.Player_NOKAVForwardFar;
 import bwmcts.sparcraft.players.Player_NoOverKillAttackValue;
 import bwmcts.sparcraft.players.Player_Retreat;
 import bwmcts.sparcraft.players.Player_RetreatFar;
@@ -38,12 +43,11 @@ public class UCTPortfolio_2 extends UCT {
 		// Add scripts
 		scripts = new ArrayList<Player>();
 		scripts.add(new Player_NoOverKillAttackValue(config.getMaxPlayerIndex()));
-		scripts.add(new Player_Retreat(config.getMaxPlayerIndex()));
-		scripts.add(new Player_RetreatFar(config.getMaxPlayerIndex()));
-		scripts.add(new Player_Forward(config.getMaxPlayerIndex()));
-		scripts.add(new Player_ForwardFar(config.getMaxPlayerIndex()));
-		scripts.add(new Player_AttackClosest(config.getMaxPlayerIndex()));
-		scripts.add(new Player_AttackWeakest(config.getMaxPlayerIndex()));
+		scripts.add(new Player_NOKAVForward(config.getMaxPlayerIndex()));
+		scripts.add(new Player_NOKAVBack(config.getMaxPlayerIndex()));
+		scripts.add(new Player_NOKAVForwardFar(config.getMaxPlayerIndex()));
+		scripts.add(new Player_NOKAVBackClose(config.getMaxPlayerIndex()));
+		scripts.add(new Player_NOKAVBackFar(config.getMaxPlayerIndex()));
 	}
 
 	@Override

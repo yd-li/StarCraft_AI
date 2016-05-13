@@ -26,16 +26,19 @@ import bwmcts.uct.UctStats;
 import bwmcts.uct.flatguctcd.FlatGUCTCD;
 import bwmcts.uct.guctcd.ClusteringConfig;
 import bwmcts.uct.guctcd.GUCTCD;
+import bwmcts.uct.guctcd.GUCTCD_p;
 import bwmcts.uct.iuctcd.IUCTCD;
+import bwmcts.uct.iuctcd.IUCTCD_p;
 import bwmcts.uct.portfolio.UCTPortfolio_2;
 import bwmcts.uct.rguctcd.RGUCTCD;
+import bwmcts.uct.rguctcd.RGUCTCD_p;
 import bwmcts.uct.uctcd.UCTCD;
 import bwmcts.sparcraft.*;
 import bwmcts.sparcraft.players.*;
 
 public class Test implements BWAPIEventListener  {
 	
-	private static boolean graphics = false;
+	private static boolean graphics = true;
 	
 	JNIBWAPI bwapi;
 	
@@ -98,10 +101,17 @@ public class Test implements BWAPIEventListener  {
 		
 		FlatGUCTCD flatGuctcdB = new FlatGUCTCD(new UctConfig(1, true), 
 				new ClusteringConfig(1, 6, new DynamicKMeans(30.0)));
+		
+		GUCTCD_p guctcd_p = new GUCTCD_p(new UctConfig(1), 
+				new ClusteringConfig(1, 6, new DynamicKMeans(30.0)));
 
-		Player_Watcher5 p1;
+		RGUCTCD_p rguctcd_p = new RGUCTCD_p(new UctConfig(1), 
+				new ClusteringConfig(1, 6, new DynamicKMeans(30.0)));
+
+		
+		Player_Watcher6 p1;
 		//Player p1;
-		p1 = new Player_Watcher5(0);
+		p1 = new Player_Watcher6(0);
 		//p1 = new Player_AttackAndMove(0);
 		//p1 = new Player_Kite(0);
 		//p1 = new Player_Watcher(0);
@@ -117,12 +127,15 @@ public class Test implements BWAPIEventListener  {
 		Player p2;
 		//p2=new Player_Random(1);
 		//p2 = new Player_AttackClosest(1);
-		//p2 = new Player_KiteDPS(1);
+		//p2 = new Player_Kite(1);
 		//p2 = new Player_NoOverKillAttackValue(1);
-//		p2 = new UctLogic(tc.bwapi, new UCTCD(new UctConfig(1)),40);
-		p2 = new UctLogic(tc.bwapi, new UCTPortfolio_2(new UctConfig(1)),40);
+		//p2 = new UctLogic(tc.bwapi, new UCTCD(new UctConfig(1)),40);
 		//Player p2 = new RandomScriptLogic(1);
-		//Player p2 = new UctLogic(tc.bwapi, guctcdB, 40);
+//		 p2 = new UctLogic(tc.bwapi, guctcdB, 40);
+//		p2 = new UctLogic(tc.bwapi, guctcd_p, 40);
+//		p2 = new UctLogic(tc.bwapi, new IUCTCD_p(new UctConfig(1)),40);
+		p2 = new UctLogic(tc.bwapi, rguctcd_p, 40);
+//		p2 = new UctLogic(tc.bwapi, new UCTPortfolio_2(new UctConfig(1)), 40);
 		
 		tc.buf=new StringBuffer();
 		System.out.println("Player0: "+p1.toString());
@@ -130,9 +143,9 @@ public class Test implements BWAPIEventListener  {
 		tc.buf.append("Player0: "+p1.toString()+"\r\n");
 		tc.buf.append("Player1: "+p2.toString()+"\r\n");
 		
-		//tc.newTest(p1, p2, 100, new int[]{4,8,16});
-		tc.newEvoTest(p1, p2, 100, new int[]{4,8,16});
-		//tc.newEvoTest2(p1, p2, 100, new int[]{4,8,16});
+		// tc.newTest(p1, p2, 100, new int[]{4,8,16});
+		//tc.newEvoTest(p1, p2, 100, new int[]{8,8,16});
+		tc.newEvoTest2(p1, p2, 100, new int[]{16,8,16});
 		//tc.dragoonZTest(p1, p2, 10, new int[]{8,32,80,112,144});
 		
 		try {
@@ -323,23 +336,43 @@ public class Test implements BWAPIEventListener  {
 		}
 	}
 	
+	private void newEvoTest2(Player_Watcher6 p1, Player p2, int runs, int[] n) {
+		//THIS ONLY ALLOWS PLAYER1 TO BE EVO CONTROLLER
+		// Combat size
+		//int[] n = new int[]{8,16,32,50};
+		//runs is the number of runs
+		//n is the size of army
+		for(Integer i : n){
+			try {
+				p1.setNumUnit(i);
+				System.out.println("--- units: " + i);
+				buf.append("--- units: " + i+"\r\n");
+				float result = newTestGames2(p1, p2, (int)i, runs);
+				buf.append("AI GAME TEST RESULT: " + result+"\r\n");
+				System.out.println("AI GAME TEST RESULT: " + result);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
 	float newTestGames2(Player p1, Player p2, int n, int games) throws Exception{
 		//will create a game with dragoons and zealots.
 		
 		HashMap<UnitTypes, Integer> unitsA = new HashMap<UnitType.UnitTypes, Integer>();
 		//unitsA.put(UnitTypes.Terran_SCV, n/2);
-		//unitsA.put(UnitTypes.Terran_Marine, 6);
+		//unitsA.put(UnitTypes.Terran_Marine, n/2);
 		//unitsA.put(UnitTypes.Terran_Goliath, n);
-		unitsA.put(UnitTypes.Protoss_Dragoon, n/2);
-		unitsA.put(UnitTypes.Protoss_Zealot, n/2);
+		unitsA.put(UnitTypes.Protoss_Dragoon, n);
+		//unitsA.put(UnitTypes.Protoss_Zealot, n/2);
 		//unitsA.put(UnitTypes.Terran_Ghost, 1);
 		//NEED TO CHANGE NUMBER OF UNITS AT WATCHER5
 		
 		HashMap<UnitTypes, Integer> unitsB = new HashMap<UnitType.UnitTypes, Integer>();
-		unitsB.put(UnitTypes.Protoss_Dragoon, n/2);
-		unitsB.put(UnitTypes.Protoss_Zealot, n/2);
+		unitsB.put(UnitTypes.Protoss_Dragoon, n);
+		//unitsB.put(UnitTypes.Protoss_Zealot, n/2);
 		//unitsB.put(UnitTypes.Terran_SCV, n/2);
-		//unitsB.put(UnitTypes.Terran_Marine, 6);
+		//unitsB.put(UnitTypes.Terran_Marine, n/2);
 		//unitsB.put(UnitTypes.Terran_Goliath, n);
 		
 		Constants.Max_Units = n*2;

@@ -32,7 +32,7 @@ public class Player_Watcher5 extends Player {
 	int numOfUnits=0;
 	boolean showBestDna = false;
 	boolean allowInitRandomMutation = false;
-	int EVALUTIONMETHOD = 0;//0 means LTD2, 1 means playout
+	int EVALUTIONMETHOD = 1;//0 means LTD2, 1 means playout
 
 	public Player_Watcher5(int playerID) {
 		_id = playerID;
@@ -64,6 +64,8 @@ public class Player_Watcher5 extends Player {
 		int numOfMutations = 10;
 		int numOfScripts = scripts.size();
 		//DNA initialization
+		//fix here: we need to add the sense of population.
+		//
 		ArrayList<ArrayList<Integer>> DNA = new ArrayList<ArrayList<Integer>>();
 		for(int k=0;k<futureSteps;k++){
 			DNA.add(new ArrayList<Integer>());

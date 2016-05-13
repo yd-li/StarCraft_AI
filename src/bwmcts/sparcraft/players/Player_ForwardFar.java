@@ -61,15 +61,7 @@ public class Player_ForwardFar extends Player {
 						foundUnitAction = true;
 					}
 				}
-				else if (move.type() == UnitActionTypes.RELOAD)
-				{
-					if (ourUnit.canAttackTarget(farthestUnit, state.getTime()))
-					{
-						//closestMoveIndex = m;
-						//break;
-					}
-				}
-				else if (move.type() == UnitActionTypes.MOVE)
+				if (move.type() == UnitActionTypes.MOVE)
 				{
 					Position ourDest			=new Position(ourUnit.pos().getX() + Constants.Move_Dir[move.index()][0],	 ourUnit.pos().getY() + Constants.Move_Dir[move.index()][1]);
 					int dist					=farthestUnit.getDistanceSqToPosition(ourDest, state.getTime());

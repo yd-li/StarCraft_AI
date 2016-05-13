@@ -164,6 +164,7 @@ public class Game {
 		for (Integer u : moves.keySet()){
 			//this u is a unit index!!
 			//System.out.println("monitor: "+u +": "+monitor[u]+" DNA size: "+DNA.size());
+			//System.out.println("mlength: "+monitor.length+" DNA length: "+DNA.size()+" u: "+u +" monitor[u]: "+monitor[u]);
 			
 			int scriptN = DNA.get(monitor[u]).get(u);
 			monitor[u]+=1;
@@ -175,7 +176,7 @@ public class Game {
 		}
 	}
 
-	public double dnaEvalGroup(ArrayList<ArrayList<Integer>> DNA,int method){
+	public int dnaEvalGroup(ArrayList<ArrayList<Integer>> DNA,int method){
 		//method, 0 = LTD2
 		//1 = playout
 		
@@ -195,6 +196,7 @@ public class Game {
         int index = 0; //break out of game loop when index == size;
         int monitor[] = new int[DNA.get(0).size()];//hardcoded to keep track of how many scripts a unit has finished
 	    Arrays.fill(monitor, 0);
+	    STOP = false;
         while (!this.gameOver()){
 	        if (STOP||rounds >= moveLimit)
 	        {
@@ -242,19 +244,59 @@ public class Game {
 	        rounds++;
 	    }
 	    
-	    GameState finalState = this.getState();
-	    int scoreval=0;
-	    if(method == 0){
-	    	StateEvalScore score = finalState.eval(Players.Player_One.ordinal(), EvaluationMethods.LTD2);
-	    	scoreval = score._val;
-	    }else{
-			GameState sc = finalState.clone(); // sc for state clone
-			Game gc = new Game(sc, new Player_NoOverKillAttackValue(Players.Player_One.ordinal()),
-					new Player_NoOverKillAttackValue(Players.Player_Two.ordinal()), 200, false);
-			gc.play();
-			scoreval = gc.getState().eval(Players.Player_One.ordinal(), EvaluationMethods.LTD2)._val;
+        if(method==0){
+        	return this.getState().eval(Players.Player_One.ordinal(), EvaluationMethods.LTD2)._val;
+        }
+        
+        rounds=0;
+        moveLimit = 15;
+		_players[0]=new Player_NoOverKillAttackValue(Players.Player_One.ordinal());
+		_players[1]=new Player_NoOverKillAttackValue(Players.Player_Two.ordinal());
+	    while (!this.gameOver()){
+	        if (rounds >= moveLimit)
+	        {
+	            break;
+	        }
+	        scriptMoves_A.clear();
+	        scriptMoves_B.clear();
+	
+	        // the player that will move next
+	        playerToMove=getPlayerToMove();
+	        toMove = _players[playerToMove];
+	        enemy = _players[GameState.getEnemy(playerToMove)];
+
+	        // generate the moves possible from this state
+	        moves_A.clear();
+	        moves_B.clear();
+
+			state.generateMoves(moves_A, toMove.ID());
+
+	        
+	        // if both players can move, generate the other player's moves
+	        if (state.bothCanMove())
+	        {
+
+	        	state.generateMoves(moves_B, enemy.ID());
+
+				enemy.getMoves(state, moves_B, scriptMoves_B);
+
+	            state.makeMoves(scriptMoves_B);
+	            //System.out.println("B moves: "+scriptMoves_B);
+
+	        }
+	        
+	        // the tuple of moves he wishes to make
+	        toMove.getMoves(state, moves_A, scriptMoves_A); //THIS IS WHERE PLAYER.GETMOVES IS CALLED
+	       
+	        // make the moves
+			state.makeMoves(scriptMoves_A); //let's not worry about its details for now
+			
+			//System.out.println("A moves: "+scriptMoves_A);
+			state.finishedMoving();
+	        rounds++;
 	    }
-	    
+        
+	    int scoreval=this.getState().eval(Players.Player_One.ordinal(), EvaluationMethods.LTD2)._val;
 	    // StateEvalScore has two components, a numerical score and a number of Movement actions performed by each player
 	    // with this evaluation, positive val means win, negative means loss, 0 means tie
 	    return scoreval;

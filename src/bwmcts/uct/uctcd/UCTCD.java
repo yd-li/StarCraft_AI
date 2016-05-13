@@ -89,7 +89,7 @@ public class UCTCD extends UCT {
 	}
 	
 	private float traverse(UctNode node, GameState state) {
-		
+		//recursive traverse..
 		float score = 0f;
 		if (node.getVisits() == 0){
 			updateState(node, state, true);
@@ -159,7 +159,6 @@ public class UCTCD extends UCT {
 			UctNode childRandom = new UctNode(node, childType, moveRandom, playerToMove, "RANDOM");
 			node.getChildren().add(childRandom);
 		}
-		
 	}
 
 	private void shuffleMoveOrders(HashMap<Integer, List<UnitAction>> map) {

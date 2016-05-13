@@ -20,7 +20,9 @@ import bwmcts.sparcraft.players.Player;
 import bwmcts.uct.UCT;
 import bwmcts.uct.flatguctcd.FlatGUCTCD;
 import bwmcts.uct.guctcd.GUCTCD;
+import bwmcts.uct.guctcd.GUCTCD_p;
 import bwmcts.uct.rguctcd.RGUCTCD;
+import bwmcts.uct.rguctcd.RGUCTCD_p;
 import javabot.JNIBWAPI;
 import javabot.util.BWColor;
 
@@ -42,7 +44,6 @@ public class UctLogic extends Player implements ICombatLogic {
 		WeaponProperties.Init(bwapi);
 		UnitProperties.Init(bwapi);
 		this.timeBudget = timeBudget;
-
 	}
 
 	@Override	
@@ -56,6 +57,9 @@ public class UctLogic extends Player implements ICombatLogic {
 			if (uct instanceof GUCTCD){
 				clusters = ((GUCTCD)uct).getClusters();
 			}
+			if (uct instanceof GUCTCD_p){
+				clusters = ((GUCTCD_p)uct).getClusters();
+			}
 			System.out.println();
 			executeActions(bwapi,state,move);
 		} catch(Exception e){
@@ -64,7 +68,6 @@ public class UctLogic extends Player implements ICombatLogic {
 	}
 	
 	public void drawClusters(JNIBWAPI bwapi, HashMap<Integer, List<Unit>> clusters) {
-		
 		if (clusters == null)
 			return;
 		
@@ -108,6 +111,7 @@ public class UctLogic extends Player implements ICombatLogic {
 
 
 	private HashMap<Integer,UnitAction> firstAttack=new HashMap<Integer,UnitAction>();
+	//WHAT IS FIRST ATTACK?????
 	
 	private void executeActions(JNIBWAPI bwapi, GameState state, List<UnitAction> moves) {
 		if (moves!=null && !moves.isEmpty()){
@@ -166,7 +170,6 @@ public class UctLogic extends Player implements ICombatLogic {
 
 	public void getMoves(GameState state, HashMap<Integer,List<UnitAction>> moves, List<UnitAction>  moveVec)
 	{
-		
 		moveVec.clear();
 		List<UnitAction> move=new ArrayList<UnitAction>();
 		move = uct.search(state.clone(), timeBudget);
@@ -178,6 +181,12 @@ public class UctLogic extends Player implements ICombatLogic {
 		}
 		if (uct instanceof FlatGUCTCD){
 			clusters = ((FlatGUCTCD)uct).getClusters();
+		}
+		if (uct instanceof GUCTCD_p){
+			clusters = ((GUCTCD_p)uct).getClusters();
+		}
+		if (uct instanceof RGUCTCD_p){
+			clusters = ((RGUCTCD_p)uct).getClusters();
 		}
 		/*
 		if (guctcd!=null){
@@ -196,7 +205,6 @@ public class UctLogic extends Player implements ICombatLogic {
 		*/
 		for(UnitAction action : move)
 			moveVec.add(action.clone());
-	
 	}
 	
 	public void drawUnitOneInfo(JNIBWAPI bwapi){

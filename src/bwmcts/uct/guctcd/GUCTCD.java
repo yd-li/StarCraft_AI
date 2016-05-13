@@ -87,10 +87,8 @@ public class GUCTCD extends UCT {
 		
 		int t = 0;
 		while(System.currentTimeMillis() <= start + timeBudget){
-			
 			traverse(root, state.clone());
 			t++;
-			
 		}
 		
 		stats.getIterations().add(t);

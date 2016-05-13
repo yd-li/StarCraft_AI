@@ -35,7 +35,7 @@ public abstract class UCT {
 	public abstract List<UnitAction> search(GameState state, long timeBudget);
 		
 	protected float evaluate(GameState state) {
-		
+		//RETURN EVALUATION VALUE
 		// get the players
 	    Player p1 = new Player_NoOverKillAttackValue(Players.Player_One.ordinal());
 	    Player p2 = new Player_NoOverKillAttackValue(Players.Player_Two.ordinal());

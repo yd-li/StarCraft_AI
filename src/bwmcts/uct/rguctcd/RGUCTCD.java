@@ -346,6 +346,9 @@ public class RGUCTCD extends UCT {
 			if (clus.size() <= unitState.unit){
 				break;
 			}
+			
+			System.out.print(unitState.type.toString() + " ");
+
 			// Add units in cluster
 			for(Unit u : clus.get(unitState.unit)){
 				
@@ -361,6 +364,7 @@ public class RGUCTCD extends UCT {
 			}
 			
 		}
+		System.out.println();
 		
 		List<UnitAction> allActions = new ArrayList<UnitAction>();
 		HashMap<Integer, List<UnitAction>> attackingMap = new HashMap<Integer, List<UnitAction>>();
