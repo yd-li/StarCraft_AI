@@ -68,7 +68,6 @@ public class Game {
 	
 // play the game until there is a winner
 	public void play(){
-
 		ArrayList<UnitAction>scriptMoves_A = new ArrayList<UnitAction>();
 		ArrayList<UnitAction>scriptMoves_B = new ArrayList<UnitAction>();
 		Player toMove;
@@ -77,6 +76,7 @@ public class Game {
         HashMap<Integer,List<UnitAction>> moves_B=new HashMap<Integer,List<UnitAction>>();
         int playerToMove=-1;
 
+        long testtt = System.nanoTime();//T
 	    while (!this.gameOver()){
 	    	
 	        if (rounds >= moveLimit)
@@ -156,11 +156,95 @@ public class Game {
 	        rounds++;
 	        
 	    }
+	    //System.out.println(System.nanoTime()-testtt);
 	}
+	
+	// play the game until there is a winner
+	public void playWithTimeLimit(long startTime,long timeLimit){
+		ArrayList<UnitAction>scriptMoves_A = new ArrayList<UnitAction>();
+		ArrayList<UnitAction>scriptMoves_B = new ArrayList<UnitAction>();
+		Player toMove;
+		Player enemy;
+		HashMap<Integer,List<UnitAction>> moves_A=new HashMap<Integer,List<UnitAction>>();
+        HashMap<Integer,List<UnitAction>> moves_B=new HashMap<Integer,List<UnitAction>>();
+        int playerToMove=-1;
+
+	    while (!this.gameOver()){
+	        if (rounds >= moveLimit)
+	        {
+	            break;
+	        }
+	        if(rounds%20==19){
+	        	if(System.nanoTime()-startTime>timeLimit)
+	        	{break;}}
+	    	
+	        scriptMoves_A.clear();
+	        scriptMoves_B.clear();
+	
+	        // the player that will move next
+	        playerToMove=getPlayerToMove();
+	        toMove = _players[playerToMove];
+	        enemy = _players[GameState.getEnemy(playerToMove)];
+
+	        // generate the moves possible from this state
+	        moves_A.clear();
+	        moves_B.clear();
+
+			state.generateMoves(moves_A, toMove.ID());
+
+	        
+	        // if both players can move, generate the other player's moves
+	        if (state.bothCanMove())
+	        {
+
+	        	state.generateMoves(moves_B, enemy.ID());
+
+				enemy.getMoves(state, moves_B, scriptMoves_B);
+
+	            state.makeMoves(scriptMoves_B);
+	            //System.out.println("B moves: "+scriptMoves_B);
+
+	        }
+	        
+	        // the tuple of moves he wishes to make
+	        toMove.getMoves(state, moves_A, scriptMoves_A); //THIS IS WHERE PLAYER.GETMOVES IS CALLED
+	       
+	        // make the moves
+			state.makeMoves(scriptMoves_A); //let's not worry about its details for now
+	        state.finishedMoving();
+	        rounds++;
+	    }
+	}
+	
 	
 	public void dnaMoves(ArrayList<ArrayList<Integer>> DNA,int[] monitor,
 			HashMap<Integer,List<UnitAction>> moves, ArrayList<UnitAction> scriptMoves){
 		//System.out.println(moves.size());
+		ArrayList<ArrayList<Integer>> su = new ArrayList<ArrayList<Integer>>();
+		for(int i=0;i<scripts.size();i++){
+			su.add(new ArrayList<Integer>());
+		}
+		
+		for(Integer u : moves.keySet()){
+			int scriptN = DNA.get(monitor[u]).get(u);
+			su.get(scriptN).add(u);//add each unit to its script.
+			monitor[u]+=1;
+			if(monitor[u]>=DNA.size()-1){STOP=true;}
+		}
+		
+		for(int s=0;s<scripts.size();s++){
+			int numUnitsInScript = su.get(s).size();
+			if(numUnitsInScript>0){
+				Player scriptToUse = scripts.get(s);
+				HashMap<Integer,List<UnitAction>> scriptUnitMap = new HashMap<Integer,List<UnitAction>>();
+				for(int z=0;z<numUnitsInScript;z++){
+					int unit = su.get(s).get(z);
+					scriptUnitMap.put(unit, moves.get(unit));
+				}
+				scriptToUse.getMoves(state, scriptUnitMap, scriptMoves);
+			}
+		}
+		/*
 		for (Integer u : moves.keySet()){
 			//this u is a unit index!!
 			//System.out.println("monitor: "+u +": "+monitor[u]+" DNA size: "+DNA.size());
@@ -169,11 +253,12 @@ public class Game {
 			int scriptN = DNA.get(monitor[u]).get(u);
 			monitor[u]+=1;
 			if(monitor[u]>=DNA.size()-1){STOP=true;}
+			
 			Player scriptToUse = this.scripts.get(scriptN); //
 			HashMap<Integer,List<UnitAction>> oneUnitMap = new HashMap<Integer,List<UnitAction>>();
 			oneUnitMap.put(u, moves.get(u));
 			scriptToUse.getMoves(state, oneUnitMap, scriptMoves);
-		}
+		}*/
 	}
 
 	public int dnaEvalGroup(ArrayList<ArrayList<Integer>> DNA,int method){
@@ -301,7 +386,7 @@ public class Game {
 	    // with this evaluation, positive val means win, negative means loss, 0 means tie
 	    return scoreval;
 	}	
-	
+	/*	
 	public double dnaEval(ArrayList<Integer> DNA){
 		//DNA as a sequence of scripts
 
@@ -374,7 +459,7 @@ public class Game {
 	    // with this evaluation, positive val means win, negative means loss, 0 means tie
 	    return score._val;
 	}	
-/*	
+
 	//I'll need a forward model where instead of playing til the end, the gamestate
 	//only forward step by step
 	//use this to implement search-based alg
@@ -503,5 +588,4 @@ public class Game {
 	   
 	   return whoCanMove==Players.Player_Both ? random.ordinal(): whoCanMove.ordinal();
 	}
-
 }

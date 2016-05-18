@@ -21,6 +21,7 @@ import bwmcts.sparcraft.UnitActionTypes;
 
 public class Player_pg extends Player {
 	//PORTFOLIO GREEDY SEARCH
+	//THIS IS NOW SPECIFICALLY THE OLD CHURCHILL'S VERSION.
 	
 	private int _id=0;
 	private int _eid = 1;
@@ -29,13 +30,13 @@ public class Player_pg extends Player {
 	ArrayList<Player> ourScripts;
 	ArrayList<Player> enemyScripts;
 	int Iteration = 1;
-	int R = 5;
+	int R = 0;
 	int numOfUnits = 0;
 	long timeLimit = 40000000; //in nano sec 1 millie =1 000 000
 	long timeElapsed = 0;
 	long startTime = 0;
 	boolean LIMITTIME = true;
-	int ROUNDLIMIT = 10;
+	int ROUNDLIMIT = 200;
 	boolean REACHLIMIT = false;
 	
 	public Player_pg(int playerID) {
@@ -63,14 +64,31 @@ public class Player_pg extends Player {
 		setting1();
 	}
 	
+	private void initSettingEnhanced(){
+		//called after setting the num of units
+		if (numOfUnits>=64){
+			ROUNDLIMIT = 10;
+		}else if (numOfUnits>=48){
+			ROUNDLIMIT = 15;
+		}else if (numOfUnits>=32){
+			ROUNDLIMIT = 35;
+		}else if (numOfUnits>=24){
+			ROUNDLIMIT = 60;
+		}else if(numOfUnits>=16){
+			ROUNDLIMIT = 100; 
+		}else{
+			ROUNDLIMIT = 200;
+		}
+	}
+	
 	private void initSetting(){
 		//call this after setting the num of units
-		if (numOfUnits>=32){
-			setting2();
-		}
-		if(numOfUnits>=48){
-			setting3();
-		}
+		//if (numOfUnits>=32){
+		//	setting2();
+		//}
+		//if(numOfUnits>=48){
+		//	setting3();
+		//}
 	}
 
 	public void setting1(){
@@ -187,12 +205,23 @@ public class Player_pg extends Player {
 		GameState sc = state.clone(); // sc for state clone
 		
 		Game gc;
-		if(playerId==0){
-			 gc = new Game(sc, new Player_pg_helper(playerId,our_scripts),
-					new Player_pg_helper((playerId+1)%2,enemy_scripts), ROUNDLIMIT, false); //send scripts to game...
+		
+		ArrayList<Player> portoflio0;
+		ArrayList<Player> portoflio1;
+		if(_id==0){
+			portoflio0 = portfolioA;
+			portoflio1 = portfolioB;
 		}else{
-			 gc = new Game(sc, new Player_pg_helper((playerId+1)%2, enemy_scripts),
-					 new Player_pg_helper(playerId,our_scripts), ROUNDLIMIT, false); //send scripts to game...
+			portoflio1 = portfolioA;
+			portoflio0 = portfolioB;
+		}
+		
+		if(playerId==0){
+			 gc = new Game(sc, new Player_pg_helper(playerId,our_scripts,portoflio0),
+					new Player_pg_helper((playerId+1)%2,enemy_scripts,portoflio1), ROUNDLIMIT, false); //send scripts to game...
+		}else{
+			 gc = new Game(sc, new Player_pg_helper((playerId+1)%2, enemy_scripts,portoflio0),
+					 new Player_pg_helper(playerId,our_scripts,portoflio1), ROUNDLIMIT, false); //send scripts to game...
 		}
 
 		gc.play();
@@ -215,17 +244,34 @@ public class Player_pg extends Player {
 	
 	public void makeMove(ArrayList<Player> scriptsToUse,GameState state, HashMap<Integer,List<UnitAction>> moves,
 			List<UnitAction> moveVec){
-		for (Integer u : moves.keySet()){
-			//this u is a unit index!!
-			Player scriptToUse = scriptsToUse.get(u); //
-			HashMap<Integer,List<UnitAction>> oneUnitMap = new HashMap<Integer,List<UnitAction>>();
-			oneUnitMap.put(u, moves.get(u));
-			scriptToUse.getMoves(state, oneUnitMap, moveVec);
+		HashMap<Player,ArrayList<Integer>> su = new HashMap<Player,ArrayList<Integer>>();
+		
+		for(int i=0;i<portfolioA.size();i++){
+			su.put(portfolioA.get(i), new ArrayList<Integer>());
+		}
+
+		for(Integer u : moves.keySet()){
+			Player scriptN = scriptsToUse.get(u);
+			su.get(scriptN).add(u);//add each unit to its script.
+		}
+		
+		for(int s=0;s<portfolioA.size();s++){
+			int numUnitsInScript = su.get(portfolioA.get(s)).size();
+			if(numUnitsInScript>0){
+				Player scriptToUse = portfolioA.get(s);
+				HashMap<Integer,List<UnitAction>> scriptUnitMap = new HashMap<Integer,List<UnitAction>>();
+				for(int z=0;z<numUnitsInScript;z++){
+					int unit = su.get(scriptToUse).get(z);
+					scriptUnitMap.put(unit, moves.get(unit));
+				}
+				scriptToUse.getMoves(state, scriptUnitMap, moveVec);
+			}
 		}
 	}
 	
+	
 	public String toString(){
-		return "Portfolio Greedy Search";
+		return "Portfolio Greedy Search-original";
 	}
 	
 	public void setNumUnit(int i){

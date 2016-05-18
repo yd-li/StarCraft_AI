@@ -16,6 +16,7 @@ import bwmcts.sparcraft.Players;
 import bwmcts.sparcraft.UnitAction;
 import bwmcts.sparcraft.players.Player;
 import bwmcts.sparcraft.players.Player_Kite;
+import bwmcts.sparcraft.players.Player_KiteDPS;
 import bwmcts.sparcraft.players.Player_NOKAVBack;
 import bwmcts.sparcraft.players.Player_NOKAVBackClose;
 import bwmcts.sparcraft.players.Player_NOKAVBackFar;
@@ -31,6 +32,7 @@ import bwmcts.uct.UctStats;
 public class IUCTCD_p extends UCT {
 	
 	private ArrayList<Player> scripts;
+	private String NAME;
 	
 	public IUCTCD_p(UctConfig config) {
 		super(config);
@@ -38,11 +40,27 @@ public class IUCTCD_p extends UCT {
 		// Add scripts
 		scripts = new ArrayList<Player>();
 		scripts.add(new Player_NoOverKillAttackValue(config.getMaxPlayerIndex()));
+		scripts.add(new Player_KiteDPS(config.getMaxPlayerIndex()));
+		NAME = "scriptUCT2";
+	}
+	
+	
+	public void init2scripts(){
+		scripts = new ArrayList<Player>();
+		scripts.add(new Player_NoOverKillAttackValue(config.getMaxPlayerIndex()));
+		scripts.add(new Player_KiteDPS(config.getMaxPlayerIndex()));
+		NAME = "scriptUCT2";
+	}
+	
+	public void init6scripts(){
+		scripts = new ArrayList<Player>();
+		scripts.add(new Player_NoOverKillAttackValue(config.getMaxPlayerIndex()));
 		scripts.add(new Player_NOKAVForward(config.getMaxPlayerIndex()));
 		scripts.add(new Player_NOKAVBack(config.getMaxPlayerIndex()));
 		scripts.add(new Player_NOKAVForwardFar(config.getMaxPlayerIndex()));
 		scripts.add(new Player_NOKAVBackClose(config.getMaxPlayerIndex()));
 		scripts.add(new Player_NOKAVBackFar(config.getMaxPlayerIndex()));
+		NAME = "scriptUCT6";
 	}
 	
 	@Override
@@ -148,16 +166,6 @@ public class IUCTCD_p extends UCT {
 		boolean onlyNok = config.isNokModelling() && playerToMove != config.getMaxPlayerIndex();
 		
 		String label = "";
-//		if (node.getChildren().isEmpty()){
-//			move.addAll(getAllMove(UnitStateTypes.ATTACK, node.getPossibleMoves()));
-//			label = "NOK-AV";
-//		} else if (!onlyNok && node.getChildren().size() == 1){
-//			move.addAll(getAllMove(UnitStateTypes.KITE, node.getPossibleMoves()));
-//			label = "KITE";
-//		} else if (!onlyNok){
-//			move = getRandomMove(playerToMove, node.getPossibleMoves()); // Possible moves?
-//			label = "RANDOM";
-//		}
 		if (node.getChildren().size() < scripts.size() && playerToMove == config.getMaxPlayerIndex()) {
 			move.addAll(getAllMove(UnitStateTypes.values()[node.getChildren().size()],
 													node.getPossibleMoves()));
@@ -260,17 +268,12 @@ public class IUCTCD_p extends UCT {
 		else
 			player = move.get(0).player;
 		
-		Player attack = new Player_NoOverKillAttackValue(player);
-		Player kite = new Player_Kite(player);
-		
 		HashMap<Integer, List<UnitAction>> map = new HashMap<Integer, List<UnitAction>>();
 		
 		try {
 			state.generateMoves(map, player);
 		} catch (Exception e) {e.printStackTrace();}
 		
-//		List<Integer> attackingUnits = new ArrayList<Integer>();
-//		List<Integer> kitingUnits = new ArrayList<Integer>();
 		ArrayList<ArrayList<Integer>> typeUnits = new ArrayList<ArrayList<Integer>>();
 		for (int i = 0; i < scripts.size(); i++) {
 			typeUnits.add(new ArrayList<Integer>());
@@ -279,12 +282,8 @@ public class IUCTCD_p extends UCT {
 		// Divide units into two groups
 		for(UnitState unitState : move){
 			
-			System.out.print(unitState.type.toString() + " ");
+			//System.out.print(unitState.type.toString() + " ");
 			
-//			if (unitState.type == UnitStateTypes.ATTACK)
-//				attackingUnits.add(unitState.unit);
-//			else if (unitState.type == UnitStateTypes.KITE)
-//				kitingUnits.add(unitState.unit);
 			for (int i = 0; i < scripts.size(); i++) {
 				if (unitState.type == UnitStateTypes.values()[i]) {
 					typeUnits.get(i).add(unitState.unit);
@@ -293,23 +292,12 @@ public class IUCTCD_p extends UCT {
 			}
 			
 		}
-		System.out.println();
 		
 		List<UnitAction> allActions = new ArrayList<UnitAction>();
-//		HashMap<Integer, List<UnitAction>> attackingMap = new HashMap<Integer, List<UnitAction>>();
-//		HashMap<Integer, List<UnitAction>> kitingMap = new HashMap<Integer, List<UnitAction>>();
 		ArrayList<HashMap<Integer, List<UnitAction>>> typeMap = new ArrayList<HashMap<Integer, List<UnitAction>>>();
 		for (int i = 0; i < scripts.size(); i++) {
 			typeMap.add(new HashMap<Integer, List<UnitAction>>());
 		}
-		
-//		for(Integer i : attackingUnits)
-//			if (map.get(i) != null)
-//				attackingMap.put(i, map.get(i));
-//			
-//		for(Integer i : kitingUnits)
-//			if (map.get(i) != null)
-//				kitingMap.put(i, map.get(i));
 		
 		for (int i = 0; i < scripts.size(); i++) {
 			for (Integer j : typeUnits.get(i)) {
@@ -319,16 +307,7 @@ public class IUCTCD_p extends UCT {
 			}
 		}
 		
-		// Add attack actions
-//		List<UnitAction> attackActions = new ArrayList<UnitAction>();
-//		attack.getMoves(state, attackingMap, attackActions);
-//		allActions.addAll(attackActions);
-		
-		// Add kite actions
-//		List<UnitAction> kiteActions = new ArrayList<UnitAction>();
-//		kite.getMoves(state, kitingMap, kiteActions);
-//		allActions.addAll(kiteActions);
-		
+		// Add actions
 		for (int i = 0; i < scripts.size(); i++) {
 			List<UnitAction> act = new ArrayList<UnitAction>();
 			scripts.get(i).getMoves(state, typeMap.get(i), act);
@@ -339,7 +318,7 @@ public class IUCTCD_p extends UCT {
 	}
 	
 	public String toString(){
-		return "IUCTCD - "+this.config.toString();
+		return NAME+"_IUCTCD - "+this.config.toString();
 	}
 	
 }

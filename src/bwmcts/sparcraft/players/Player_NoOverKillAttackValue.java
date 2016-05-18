@@ -31,6 +31,9 @@ public class Player_NoOverKillAttackValue extends Player {
 	public long timeOnHpCopying=0;
 	public void getMoves(GameState  state, HashMap<Integer,List<UnitAction>> moves, List<UnitAction>  moveVec)
 	{
+		//long ct = System.nanoTime();
+		
+
 		
 		moveVec.clear();
 
@@ -151,8 +154,10 @@ public class Player_NoOverKillAttackValue extends Player {
 				//moveVec.add(movesForU.get(closestMoveIndex));
 				moveVec.add(passiveMove);
 			}
-			
 		}
+		
+		//long et = System.nanoTime();
+		//System.out.println(et-ct);
 	}
 	
 	public String toString(){

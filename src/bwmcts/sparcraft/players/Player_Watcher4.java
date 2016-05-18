@@ -95,7 +95,8 @@ public class Player_Watcher4 extends Player {
 		GameState sc = currentState.clone(); // sc for state clone
 		Game gc = new Game(sc, new Player_NoOverKillAttackValue(this.ID()),
 				new Player_NoOverKillAttackValue(this.enemy), 200, false, scripts); //send scripts to game...
-		return gc.dnaEval(DNA);
+		//return gc.dnaEval(DNA);
+		return 0.0;
 	}
 
 	public String toString() {

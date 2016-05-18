@@ -46,6 +46,7 @@ import bwmcts.uct.iuctcd.IuctNode;
 
 public class GUCTCD_p extends UCT {
 
+	private String NAME;
 	private ClusteringConfig guctConfig;
 	
 	private List<List<Unit>> clustersA;
@@ -62,11 +63,26 @@ public class GUCTCD_p extends UCT {
 		// Add scripts
 		scripts = new ArrayList<Player>();
 		scripts.add(new Player_NoOverKillAttackValue(config.getMaxPlayerIndex()));
+		scripts.add(new Player_KiteDPS(config.getMaxPlayerIndex()));
+		NAME = "clusterUCT2";
+	}
+	
+	public void init2scripts(){
+		scripts = new ArrayList<Player>();
+		scripts.add(new Player_NoOverKillAttackValue(config.getMaxPlayerIndex()));
+		scripts.add(new Player_KiteDPS(config.getMaxPlayerIndex()));
+		NAME = "clusterUCT2";
+	}
+	
+	public void init6scripts(){
+		scripts = new ArrayList<Player>();
+		scripts.add(new Player_NoOverKillAttackValue(config.getMaxPlayerIndex()));
 		scripts.add(new Player_NOKAVForward(config.getMaxPlayerIndex()));
 		scripts.add(new Player_NOKAVBack(config.getMaxPlayerIndex()));
 		scripts.add(new Player_NOKAVForwardFar(config.getMaxPlayerIndex()));
 		scripts.add(new Player_NOKAVBackClose(config.getMaxPlayerIndex()));
 		scripts.add(new Player_NOKAVBackFar(config.getMaxPlayerIndex()));
+		NAME = "clusterUCT6";
 	}
 
 	public List<UnitAction> search(GameState state, long timeBudget){
@@ -198,17 +214,6 @@ public class GUCTCD_p extends UCT {
 			clus = clustersB;
 				
 		String label = "";
-//		if (node.getChildren().isEmpty()){
-//			move.addAll(getAllMove(UnitStateTypes.ATTACK, clus));
-//			label = "NOK-AV";
-//		} else if (node.getChildren().size() == 1 && playerToMove == config.getMaxPlayerIndex()){
-//			move.addAll(getAllMove(UnitStateTypes.KITE, clus));
-//			label = "KITE";
-//		} else if (playerToMove == config.getMaxPlayerIndex()){
-//			move = getRandomMove(playerToMove, clus); // Possible moves?
-//			label = "RANDOM";
-//		}
-		
 		if (node.getChildren().size() < scripts.size() && playerToMove == config.getMaxPlayerIndex()) {
 			move.addAll(getAllMove(UnitStateTypes.values()[node.getChildren().size()], clus));
 			label = UnitStateTypes.values()[node.getChildren().size()].toString();
@@ -350,17 +355,11 @@ public class GUCTCD_p extends UCT {
 		
 		int player = move.get(0).player;
 		
-		Player attack = new Player_NoOverKillAttackValue(player);
-		Player kite = new Player_Kite(player);
-		
 		HashMap<Integer, List<UnitAction>> map = new HashMap<Integer, List<UnitAction>>();
 		
 		try {
 			state.generateMoves(map, player);
 		} catch (Exception e) {e.printStackTrace();}
-		
-		List<Integer> attackingUnits = new ArrayList<Integer>();
-		List<Integer> kitingUnits = new ArrayList<Integer>();
 		
 		List<List<Unit>> clus = null;
 		if (player == 0)
@@ -381,12 +380,7 @@ public class GUCTCD_p extends UCT {
 			for(Unit u : clus.get(unitState.unit)){
 				
 				if (u.isAlive() && (u.canAttackNow() || u.canMoveNow())){
-				
-//					if (unitState.type == UnitStateTypes.ATTACK && u.isAlive())
-//						attackingUnits.add(u.getId());
-//					else if (unitState.type == UnitStateTypes.KITE && u.isAlive())
-//						kitingUnits.add(u.getId());
-					
+
 					for (int i = 0; i < scripts.size(); i++) {
 						if (unitState.type == UnitStateTypes.values()[i] && u.isAlive()) {
 							typeUnits.get(i).add(u.getId());
@@ -401,8 +395,6 @@ public class GUCTCD_p extends UCT {
 		}
 		
 		List<UnitAction> allActions = new ArrayList<UnitAction>();
-//		HashMap<Integer, List<UnitAction>> attackingMap = new HashMap<Integer, List<UnitAction>>();
-//		HashMap<Integer, List<UnitAction>> kitingMap = new HashMap<Integer, List<UnitAction>>();
 		ArrayList<HashMap<Integer, List<UnitAction>>> typeMap = new ArrayList<HashMap<Integer, List<UnitAction>>>();
 		for (int i = 0; i < scripts.size(); i++) {
 			typeMap.add(new HashMap<Integer, List<UnitAction>>());
@@ -412,10 +404,6 @@ public class GUCTCD_p extends UCT {
 		for(Integer i : map.keySet()){
 			int u = map.get(i).get(0)._unit;
 			int unitId = state.getUnit(player, u).getId();
-//			if (attackingUnits.contains(unitId))
-//				attackingMap.put(i, map.get(i)); 
-//			if (kitingUnits.contains(unitId))
-//				kitingMap.put(i, map.get(i));
 			for (int j = 0; j < scripts.size(); j++) {
 				if (typeUnits.get(j).contains(unitId)) {
 					typeMap.get(j).put(i,  map.get(i));
@@ -423,16 +411,7 @@ public class GUCTCD_p extends UCT {
 			}
 		}
 		
-		// Add attack actions
-//		List<UnitAction> attackActions = new ArrayList<UnitAction>();
-//		attack.getMoves(state, attackingMap, attackActions);
-//		allActions.addAll(attackActions);
-		
-		// Add defend actions
-//		List<UnitAction> defendActions = new ArrayList<UnitAction>();
-//		kite.getMoves(state, kitingMap, defendActions);
-//		allActions.addAll(defendActions);
-		
+		// Add actions
 		for (int i = 0; i < scripts.size(); i++) {
 			List<UnitAction> act = new ArrayList<UnitAction>();
 			scripts.get(i).getMoves(state, typeMap.get(i), act);
@@ -446,7 +425,7 @@ public class GUCTCD_p extends UCT {
 	}
 	
 	public String toString(){
-		return "GUCT_"+this.guctConfig.toString()+ "\t"+this.config.toString();
+		return NAME+"_GUCT_"+this.guctConfig.toString()+ "\t"+this.config.toString();
 	}
 	
 }

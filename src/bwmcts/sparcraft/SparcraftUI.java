@@ -6,6 +6,7 @@ import javax.swing.*;
 
 import bwmcts.combat.UctLogic;
 import bwmcts.sparcraft.players.Player;
+import bwmcts.sparcraft.players.Player_Evolution_Clusters;
 
 import java.awt.*;
 import java.util.HashMap;
@@ -123,6 +124,12 @@ public class SparcraftUI extends JComponent {
 			List<List<Unit>> clustersP2 = ((UctLogic)p2).getClusters();
 			if (clustersP2!=null)
 				drawClusters(g, clustersP2);
+		}
+		if (p1 instanceof Player_Evolution_Clusters) {
+			List<List<Unit>> clustersP1 = ((Player_Evolution_Clusters)p1).getClusters();
+			if (clustersP1 != null) {
+				drawClusters(g, clustersP1);
+			}
 		}
 	    
 	    
